@@ -24,9 +24,10 @@ const controlSlice = createSlice({
       state.controlList = action.payload; // Load controls from local storage
     },
     updateControl: (state, action) => {
-      const index = state.controlList.findIndex(control => control.id === action.payload.id);
+      const { id, updatedControl } = action.payload;
+      const index = state.controlList.findIndex(control => control.id === id);
       if (index !== -1) {
-        state.controlList[index] = action.payload;
+        state.controlList[index] = updatedControl;
       }
     },
   },

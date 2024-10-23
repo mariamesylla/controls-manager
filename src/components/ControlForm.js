@@ -1,77 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { addControl } from '../redux/controlSlice';
+import { addControl, updateControl } from '../redux/controlSlice';
 import { v4 as uuidv4 } from 'uuid';
 
-const ControlForm = () => {
+const ControlForm = ({ controlToEdit, clearEdit }) => {
+  const dispatch = useDispatch();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [artifacts, setArtifacts] = useState('');
-  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (controlToEdit) {
+      setName(controlToEdit.name);
+      setDescription(controlToEdit.description);
+      setArtifacts(controlToEdit.artifacts);
+    }
+  }, [controlToEdit]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newControl = {
-      id: uuidv4(),
-      name,
-      description,
-      artifacts
-    };
-    dispatch(addControl(newControl));
+    
+    if (controlToEdit) {
+      dispatch(updateControl({
+        id: controlToEdit.id,
+        updatedControl: { id: controlToEdit.id, name, description, artifacts }
+      }));
+      clearEdit();  // Clear after updating
+    } else {
+      dispatch(addControl({ id: uuidv4(), name, description, artifacts }));
+    }
+
+    // Reset form
     setName('');
     setDescription('');
     setArtifacts('');
   };
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
-      className="bg-white shadow-lg rounded-lg px-8 py-6 max-w-md mx-auto"
-    >
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800">Add a New Security Control</h2>
-
-      <div className="mb-4">
-        <label className="block text-gray-700 mb-2" htmlFor="name">Control Name</label>
-        <input
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-gray-700">Control Name</label>
+        <input 
           type="text"
-          id="name"
-          placeholder="Enter control name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="block w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full p-2 border rounded"
+          required
         />
       </div>
-
-      <div className="mb-4">
-        <label className="block text-gray-700 mb-2" htmlFor="description">Control Description</label>
-        <textarea
-          id="description"
-          placeholder="Enter control description"
+      <div>
+        <label className="block text-gray-700">Description</label>
+        <input
+          type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="block w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        ></textarea>
+          className="w-full p-2 border rounded"
+          required
+        />
       </div>
-
-      <div className="mb-6">
-        <label className="block text-gray-700 mb-2" htmlFor="artifacts">Artifacts</label>
-        <textarea
-          id="artifacts"
-          placeholder="Enter possible artifacts (evidence of control implementation)"
+      <div>
+        <label className="block text-gray-700">Artifacts</label>
+        <input
+          type="text"
           value={artifacts}
           onChange={(e) => setArtifacts(e.target.value)}
-          className="block w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        ></textarea>
+          className="w-full p-2 border rounded"
+          required
+        />
       </div>
-
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out"
-        >
-          Add Control
+      <button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+        {controlToEdit ? 'Update Control' : 'Add Control'}
+      </button>
+      {controlToEdit && (
+        <button type="button" onClick={clearEdit} className="ml-4 text-red-600 hover:text-red-800">
+          Cancel Edit
         </button>
-      </div>
+      )}
     </form>
   );
 };
